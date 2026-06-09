@@ -1,133 +1,206 @@
-# Gherkin Guidelines for AI
+# Gherkin Guidelines
 
-Adapted from AutomationPanda/gherkin-guidelines-for-ai (v1.0.0). This is the quality standard for all Gherkin specs this skill produces.
+This document is a **context contract** for writing, reviewing, and maintaining Gherkin feature files that serve as
+**living documentation** and **specification by example**.
 
-## Guiding Principles
+The goals are:
+- **Readable** by non-automation stakeholders
+- **Deterministic** enough for LLMs to follow
+- **Automation-ready** without leaking implementation details
 
-1. **Behavior-first**: Describe *what* the system does, never *how* it is implemented.
-2. **Human readability**: Scenarios read like specifications any engineer or stakeholder can understand.
-3. **Specification by example**: Use concrete, realistic data in scenarios.
-4. **One behavior per scenario**: Each scenario covers exactly one behavior.
-5. **Independence**: Every scenario runs in isolation, no dependency on other scenarios.
+This guidance assumes **Cucumber-compatible Gherkin** (the "Queen's Gherkin"). Reference: https://cucumber.io/docs/gherkin/reference/
 
-## File and Organization
+---
 
-- Save Gherkin in `*.feature` files using **kebab-case** naming.
-- One `Feature` block per file. Multiple `Scenario`/`Scenario Outline` blocks are fine.
-- Consolidate feature files in `specs/` directory. Optionally organize into sub-directories by functional area.
+## Guiding principles (apply everywhere)
 
-## Formatting
+- **Be behavior-driven**: describe *what* the system does, not *how* it’s implemented.
+- **Write for humans first**: any engineer should understand what to do and what should happen.
+- **Specification by example**: scenarios are concrete examples of behavior.
+- **One behavior per scenario**: each scenario targets a single behavior.
+- **Independent scenarios**: each scenario can run in isolation.
 
-- **2-space indentation** for all block bodies.
-- **Lines under 120 characters**.
-- **One blank line** between major sections and between adjacent scenarios.
-- **No blank lines** between steps within a scenario or background.
-- **Avoid comments**; let scenario text be self-explanatory.
+---
 
-## Vocabulary
+## Files and organization
 
-- Use a **stable, consistent vocabulary** across all features.
-- Never swap synonyms unless the product genuinely distinguishes between terms.
-- Match the project's existing domain language.
+- **MUST** save Gherkin in `*.feature` files.
+- **MUST** use kebab-case file names.
+- **SHOULD** keep all feature files under one main directory unless the project dictates otherwise.
+- **MAY** use sub-directories; **SHOULD** organize by functional behavior area.
 
-### Cross-file consistency
+---
 
-- **No contradictions**: Two specs MUST NOT define conflicting behavior for the same domain concept (e.g., different timeout values, contradictory validation rules, incompatible state transitions).
-- **No duplicate coverage**: If a behavior is already specced in one feature file, do not re-spec it in another with different wording. Reference the existing spec or consolidate.
-- **Single source of truth**: Each behavior is owned by exactly one feature file. If multiple features touch the same domain object, ensure their scenarios cover distinct behaviors, not overlapping ones.
+## Formatting rules (make diffs and parsing reliable)
 
-## Feature Block
+- **MUST** use one `Feature` per file.
+- **MAY** have multiple `Scenario` / `Scenario Outline` blocks under a single `Feature`.
+- **MUST** indent the body of these sections by **2 spaces**:
+  - `Feature`
+  - `Background`
+  - `Scenario`
+  - `Scenario Outline`
+  - `Examples`
+- **SHOULD** keep lines under **120 characters**.
+- **Vertical whitespace** (keep these together when editing a file):
+  - **SHOULD** separate major sections with **one blank line**.
+  - **SHOULD** put **one blank line** between adjacent `Scenario` / `Scenario Outline` blocks for
+    readability and cleaner diffs.
+  - **MUST NOT** put blank lines *between steps* within a scenario or background.
+- **SHOULD** avoid comments; the scenario text should be self-explanatory.
 
-- Name the Feature after the behavior area it covers.
-- Align the file name with the Feature title (kebab-case).
-- Keep the Feature title to a single line.
-- Include a user story beneath the title:
-  ```
-  As a <role>
-  I want <goal>
-  So that <reason>
-  ```
+---
 
-## Background Section
+## Vocabulary (ubiquitous language)
 
-- Optional. Use only for starting state shared by *all* scenarios in the file.
-- Maximum one Background per Feature.
-- Do not use Background when only one scenario needs that setup.
-- Keep backgrounds short; if they grow, split the feature file.
+- **MUST** use one stable vocabulary for roles, domain objects, and states.
+- **MUST NOT** swap synonyms for the same concept unless the product meaningfully distinguishes them
+  (for example: "order" vs "purchase" vs "cart").
 
-## Scenario Structure
+---
 
-- Each Scenario gets a **single-line, behavior-focused title**.
-- Steps MUST be **chronologically executable**.
-- Use **declarative** language (describe what, not how).
-- Maintain **domain/business-level abstraction** using product language.
-- Use **concrete, realistic example values** (real names, amounts, dates). Never `foo`, `bar`, `test123`.
-- Target **fewer than 10 steps**; if longer, consider splitting or using tables.
+## Feature blocks
 
-### Scenario Outline
+- **MUST** name `Feature:` after the behavior area it covers.
+- **SHOULD** align the file name with the `Feature:` title.
+- **MUST** keep the `Feature:` title to a single line.
+- **SHOULD** include a short user story directly under the `Feature:` title using three lines:
+  - `As a <role>`
+  - `I want <goal>`
+  - `So that <reason>`
 
-Use only when the same behavior needs multiple input/output variations. Prefer plain `Scenario` when inputs don't materially change the behavior.
+---
 
-## Step Language
+## Background sections
 
-- **Third person, present tense**.
-- **Subject-predicate phrasing**.
-- Proper English grammar and spelling.
-- **Double quotes** for string parameters.
-- Do not combine multiple actions/assertions with conjunctions in one step; split into separate steps.
+- **MAY** omit `Background` entirely. `Background` is optional.
+- **MUST** use `Background` only for a starting state shared by **multiple** scenarios in the file.
+- **MUST NOT** have more than one `Background` section per `Feature` (and this guidance requires one
+  `Feature` per file).
+- **MUST NOT** use `Background` when only one scenario needs the setup.
+- **SHOULD** keep backgrounds short; if a background grows, consider splitting feature files.
 
-## Given/When/Then (Arrange/Act/Assert)
+---
 
-- Strict **Given -> When -> Then** order. Never repeat phases within one scenario.
-- `And` continues the same phase. `But` is allowed sparingly for contrast.
-- **Never use `Or`** as a step keyword; use separate scenarios or Scenario Outline instead.
-- **Then outcomes MUST be observable and checkable** from the scenario text. No vague "it works" or "it succeeds" without stating how.
+## Scenarios (structure + intent)
 
-## Tables and Structured Data
+- **MUST** give each `Scenario:` / `Scenario Outline:` a single-line, behavior-focused title.
+- **MUST** be chronologically executable step-by-step.
+- **SHOULD** be declarative rather than imperative.
+- **MUST** focus on behavior concerns; step definitions (automation code) handle implementation details.
+- **SHOULD** keep steps at a **domain / business level of abstraction**: describe what actors do and
+  what the system does in **product language**, not in framework or plumbing terms.
+- **MUST NOT** leak automation or UI mechanics into steps (for example: selectors, XPath, "wait for,"
+  "scroll to," "click element #foo") unless the behavior under test is truly about that mechanic.
+- **MUST NOT** put HTTP endpoints, SQL, internal schema, or raw storage mechanics in step text unless
+  the **behavior being specified** is inherently at that layer (for example, a service exposed only as
+  an API).
+- **SHOULD** prefer **state over navigation**: describe meaningful starting states (for example,
+  "Given the user is signed in with role \"Editor\"") instead of imperative UI tours through every
+  click and field, unless the **interaction path** is what this scenario is meant to specify.
+- **SHOULD** use **minimal but sufficient** `Given` context: include only preconditions a reader needs
+  to understand the behavior; omit unrelated setup that does not change the meaning of the example.
+- **MUST NOT** bundle **multiple independent quality concerns** in one scenario (for example, core
+  functional behavior together with performance, accessibility, or unrelated security checks) unless
+  the scenario title and steps explicitly specify **one** behavior that legitimately spans those
+  concerns. Otherwise split into separate scenarios.
+- **SHOULD** use **concrete, realistic** example values in steps and tables (names, amounts, dates,
+  realistic identifiers) so the scenario reads as a believable example.
+- **SHOULD NOT** use meaningless placeholder data (`foo`, `bar`, `test`, `lorem`) unless the scenario
+  is intentionally about generic, invalid, or deliberately nonsensical input.
+- **SHOULD** target **< 10 steps**. If longer, consider splitting behaviors or using tables.
 
-- Use **step data tables** to pass lists instead of long chains of `And` steps.
-- Use concise, descriptive headers (often single-token, kebab-case).
-- Keep tables to a single screen view.
-- Use **doc strings** (`"""..."""`) for multiline or structured content (JSON, XML) instead of enormous quoted strings.
+### Scenario Outline usage
 
-## Anti-Patterns (MUST avoid)
+- **MUST** use `Scenario Outline` only when the **same behavior** needs multiple input variations.
+- **SHOULD** prefer `Scenario` when inputs don’t materially change the behavior being specified.
 
-1. Mixing multiple behaviors into one scenario.
-2. Bundling unrelated concerns (functional + performance + accessibility) into a single spec.
-3. Encoding UI implementation details in step text (selectors, XPath, "wait for", "scroll to", element IDs).
-4. Including HTTP endpoints, SQL, internal schemas, or storage mechanics (unless they ARE the behavior).
-5. Over-specifying navigation and clicks when state could communicate preconditions more clearly.
-6. Bloated Given chains setting up unnecessary context.
-7. Vague assertions without observable signals.
-8. Placeholder data that doesn't read like a real specification.
-9. Overusing Scenario Outline with rows that don't provide distinct behavioral value.
-10. Extremely long scenarios or tables that create a wall-of-text effect.
-11. Contradictory specs across files: two features specifying conflicting outcomes for the same action or domain rule.
-12. Duplicate scenarios across files: same behavior specced in multiple feature files using different wording (vocabulary drift symptom).
-13. Ambiguous outcomes: `Then` steps that two reasonable readers could interpret differently, or that cannot be verified without additional context.
+---
 
-## Pre-Finalization Checklist
+## Steps (language + semantics)
 
-Before outputting ANY Gherkin, verify against this list:
+### Language rules
 
-- [ ] One behavior per scenario; can run independently
-- [ ] No unrelated concerns bundled
-- [ ] Stable vocabulary maintained
-- [ ] Domain-level abstraction; no unnecessary UI/API/DB mechanics
-- [ ] State prioritized over navigation where clearer
-- [ ] Minimal but sufficient Given context
-- [ ] Concrete, realistic example data
-- [ ] Steps in third-person, present tense, subject-predicate
-- [ ] Strict Given -> When -> Then order; Then outcomes observable
-- [ ] No UI/automation mechanics in steps
-- [ ] Blank line between scenarios
-- [ ] Short scenarios (ideally < 10 steps); tables fit one screen
-- [ ] 2-space indentation, lines < 120 chars
-- [ ] No contradictions with existing specs in `specs/`
-- [ ] No duplicate scenarios covering the same behavior in other files
-- [ ] Vocabulary consistent with existing specs (not just within this file)
+- **MUST** write steps in **third person** and **present tense**.
+- **MUST** use **subject–predicate** phrasing.
+- **MUST** use proper English grammar and spelling.
+- **SHOULD** minimize punctuation; use it only when required for readability.
+- **MUST** use double quotes (`"`) for string parameters.
+- **SHOULD NOT** combine multiple actions/assertions with conjunctions inside one step; split into
+  separate steps.
 
-## Template
+### Given / When / Then rules
+
+- Treat **Given / When / Then** as **Arrange / Act / Assert**:
+  - `Given` sets up context
+  - `When` performs the action
+  - `Then` verifies outcomes
+- **MUST** maintain strict Given/When/Then order.
+- **MUST NOT** repeat Given/When/Then phases inside one scenario; create separate scenarios instead.
+- **MAY** use `And` to continue the same step type.
+- **MAY** use `But` sparingly when a contrast improves readability.
+- **MUST NOT** use `Or` as a step keyword. If choices matter, use separate scenarios or a
+  `Scenario Outline`.
+
+### Observable outcomes
+
+- **MUST** make `Then` outcomes **observable and checkable** from the scenario text:
+  what changed, what the user sees, or what the system reports.
+- **MUST NOT** use vague outcomes like "it works" / "it succeeds" without stating how that is known.
+
+### Multiline and structured payloads
+
+- **SHOULD** use doc strings (`"""` … `"""`) for multiline or structured payloads
+  (for example, JSON, XML, or an email body) instead of an enormous quoted string or many `And`s.
+
+---
+
+## Tables (data without step spam)
+
+- **SHOULD** use step data tables to pass lists/sets of inputs instead of long `And` chains.
+- **SHOULD** use concise, descriptive headers (often single-token with kebab-case).
+- **SHOULD** keep step tables and `Examples` tables to a single screen view.
+- If a table becomes large, reconsider whether the scenario is drifting into pure data-driven testing.
+
+---
+
+## Common anti-patterns (avoid)
+
+- Mixing multiple behaviors into one scenario (multiple unrelated actions or assertions).
+- Mixing unrelated **concerns** in one scenario (for example, happy-path functionality plus load time
+  or unrelated accessibility rules) when they deserve separate specifications.
+- Encoding UI implementation details (selectors, DOM structure) into step text.
+- Over-specifying navigation and clicks when **state** would communicate the same precondition more
+  clearly.
+- Bloated `Given` chains that set up context the scenario never needs.
+- Vague assertions ("it works", "it succeeds", "the user is logged in" without an observable signal).
+- Placeholder example data (`foo` / `bar`) that does not read like a real specification example.
+- Overusing `Scenario Outline` to generate many rows without distinct behavioral value.
+- Extremely long scenarios or tables that no human will read or will seem like a [wall of text](https://en.wikipedia.org/wiki/Wikipedia:Wall_of_text).
+
+---
+
+## Quick checklist (for humans and LLMs)
+
+Before finalizing a scenario, verify:
+- [ ] One behavior only; can run independently
+- [ ] No unrelated concerns bundled (split functional vs performance, a11y, etc. when separate)
+- [ ] Stable vocabulary (no synonym swapping)
+- [ ] Domain-level abstraction; no unnecessary UI/API/DB plumbing in steps
+- [ ] State over navigation where it keeps the scenario clearer
+- [ ] Minimal but sufficient `Given` context
+- [ ] Concrete, realistic example data (not generic placeholders)
+- [ ] Steps are third-person, present tense, subject–predicate
+- [ ] Strict Given → When → Then order; `Then` outcomes are observable
+- [ ] No UI/automation mechanics leaked into steps
+- [ ] Blank line between scenarios in the same file
+- [ ] Scenario is short (ideally < 10 steps); tables fit on one screen
+
+---
+
+## Recommended template
+
+Use this as a starting point:
 
 ```gherkin
 Feature: <behavior area>
@@ -150,6 +223,7 @@ Feature: <behavior area>
     Given the following <domain entities> exist:
       | <column-a> | <column-b> |
       | <value 1>  | <value 2>  |
+      | <value 3>  | <value 4>  |
     When <action>
     Then <observable outcome>
 
